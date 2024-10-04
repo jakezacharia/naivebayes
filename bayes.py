@@ -12,10 +12,11 @@ def load_data(filename: str, training_size: int, testing_size: int) -> Tuple[Lis
 
   with open(filename, newline='') as csvfile:
       spam_reader = csv.reader(csvfile, delimiter=',', quotechar='"')
-      next(spam_reader) # skip header row
+      # skip header row
+      next(spam_reader)
       for index, row in enumerate(spam_reader):
           if len(row) != 2:
-              continue  # Skip malformed rows
+              continue  # skip malformed rows/bad data
           label, message = row
           if index < training_size:
             training_data.append((label, message))
@@ -28,15 +29,14 @@ def load_data(filename: str, training_size: int, testing_size: int) -> Tuple[Lis
 # function for processing text, removing punctuation, numbers, etc. and setting all letters to lowercase
 def preprocess_text(text: str) -> str:
   # convert to lowercase
-  text = text.lower()
+  # text = text.lower()
 
   # remove punctuation and numbers
   text = re.sub(r'[^\w\s]', '', text)
   text = re.sub(r'\d+', '', text)
 
-   # remove extra whitespace
-  text = ' '.join(text.split())
-
+  # remove extra whitespace
+  # text = ' '.join(text.split())
   return text
 
 def preprocess_dataset(dataset: List[Tuple[str, str]]) -> List[Tuple[str, str]]:
@@ -85,10 +85,10 @@ def compute_word_counts(dataset: List[Tuple[str, str]]) -> Tuple[Dict[str, Dict[
 def compute_conditional_probabilities(word_counts: Dict[str, Dict[str, int]],
                                       label_word_counts: Dict[str, int],
                                       vocabulary: set) -> Dict[str, Dict[str, float]]:
-
   conditional_probs = defaultdict(dict)
   vocabulary_size = len(vocabulary)
 
+  # iterate through each label in word_counts, set the total words to the label of each word count, apply laplace smoothing
   for label in word_counts:
       for word in vocabulary:
           word_count = word_counts[label].get(word, 0)
@@ -100,7 +100,7 @@ def compute_conditional_probabilities(word_counts: Dict[str, Dict[str, int]],
 
   return dict(conditional_probs)
 
-
+# calculate posterior probabilities and classify the data
 def classify_message(message: str,
                      prior_probabilities: Dict[str, float],
                      conditional_probabilities: Dict[str, Dict[str, float]]) -> Tuple[str, Dict[str, float]]:
@@ -144,11 +144,16 @@ def evaluate_classifier(dataset: List[Tuple[str, str]],
 
 def main():
   print("Naive Bayes Classifier")
+  # load csv into training and testing data objects
   training_data, testing_data = load_data('SpamDetection.csv', training_size=20, testing_size=10)
+  # preprocess data (formatting, spacing, etc)
   training_data = preprocess_dataset(training_data)
   testing_data = preprocess_dataset(testing_data)
+  # calc prior probabilities on training data
   prior_probabilities = compute_prior_probabilities(training_data)
+  # create vocab set
   vocabulary = create_vocab(training_data)
+
   word_counts, label_word_counts = compute_word_counts(training_data)
   conditional_probabilities = compute_conditional_probabilities(word_counts, label_word_counts, vocabulary)
   print("\nEvaluating the classifier on the test set:")
